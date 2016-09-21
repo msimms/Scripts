@@ -1,11 +1,23 @@
+import argparse
 import os
 import subprocess
 import sys
 
+# Parse command line options
+parser = argparse.ArgumentParser()
+parser.add_argument("--root", type=str, action="store", default="", help="Directory to update, ex: --root src/", required=False)
+parser.add_argument("--prune", action="store_true", default=False, help="Prunes local branches not on the remote", required=False)
+
+try:
+	args = parser.parse_args()
+except IOError as e:
+	parser.error(e)
+	sys.exit(1)
+
 # If the user provides a path then update the repos in that directory.
 # If the user does not provide a path then update the repos in this directory.
-if len(sys.argv) >= 2:
-	rootdir = os.path.realpath(sys.argv[1])
+if len(args.root) > 0:
+	rootdir = os.path.realpath(args.root)
 else:
 	rootdir = os.path.dirname(os.path.realpath(__file__))
 
@@ -22,12 +34,16 @@ for filename in os.listdir(rootdir):
 			print "Updating git repo at " + subdir
 			os.chdir(subdir)
 			subprocess.call(["git", "pull"])
+			if args.prune:
+				subprocess.call(["git", "remote", "prune", "origin"])
 
 		# git mirror
 		if os.path.exists(gitHEAD):
 			print "Updating git repo at " + subdir
 			os.chdir(subdir)
 			subprocess.call(["git", "fetch"])
+			if args.prune:
+				subprocess.call(["git", "remote", "prune", "origin"])
 
 		# svn
 		elif os.path.exists(svnDir):
