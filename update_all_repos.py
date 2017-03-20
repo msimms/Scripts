@@ -4,39 +4,42 @@ import subprocess
 import sys
 
 def UpdateDir(args, dir):
-	for filename in os.listdir(dir):
-		subdir = os.path.join(dir, filename)
-		if os.path.isdir(subdir):
-			gitDir = os.path.join(subdir, '.git')
-			gitHEAD = os.path.join(subdir, 'HEAD')
-			svnDir = os.path.join(subdir, '.svn')
-			
-			# git repo
-			if os.path.exists(gitDir):
-				print "Updating git repo at " + subdir
-				os.chdir(subdir)
-				subprocess.call(["git", "pull"])
-				if args.prune:
-					subprocess.call(["git", "remote", "prune", "origin"])
+	try:
+		for filename in os.listdir(dir):
+			subdir = os.path.join(dir, filename)
+			if os.path.isdir(subdir):
+				gitDir = os.path.join(subdir, '.git')
+				gitHEAD = os.path.join(subdir, 'HEAD')
+				svnDir = os.path.join(subdir, '.svn')
+				
+				# git repo
+				if os.path.exists(gitDir):
+					print "Updating git repo at " + subdir
+					os.chdir(subdir)
+					subprocess.call(["git", "pull"])
+					if args.prune:
+						subprocess.call(["git", "remote", "prune", "origin"])
 
-			# git mirror
-			elif os.path.exists(gitHEAD):
-				print "Updating git mirror at " + subdir
-				os.chdir(subdir)
-				subprocess.call(["git", "fetch"])
-				if args.prune:
-					subprocess.call(["git", "remote", "prune", "origin"])
+				# git mirror
+				elif os.path.exists(gitHEAD):
+					print "Updating git mirror at " + subdir
+					os.chdir(subdir)
+					subprocess.call(["git", "fetch"])
+					if args.prune:
+						subprocess.call(["git", "remote", "prune", "origin"])
 
-			# svn
-			elif os.path.exists(svnDir):
-				print "Updating svn repo at " + subdir
-				os.chdir(subdir)
-				subprocess.call(["svn", "update"])
+				# svn
+				elif os.path.exists(svnDir):
+					print "Updating svn repo at " + subdir
+					os.chdir(subdir)
+					subprocess.call(["svn", "update"])
 
-			# recurse?
-			elif args.recurse:
-				print "Recursing into " + subdir
-				UpdateDir(args, subdir)
+				# recurse?
+				elif args.recurse:
+					print "Recursing into " + subdir
+					UpdateDir(args, subdir)
+	except OSError as e:
+		print e
 
 # Parse command line options
 parser = argparse.ArgumentParser()
