@@ -3,62 +3,76 @@ import os
 import subprocess
 import sys
 
-def UpdateDir(args, dir):
-	try:
-		for filename in os.listdir(dir):
-			subdir = os.path.join(dir, filename)
-			if os.path.isdir(subdir):
-				gitDir = os.path.join(subdir, '.git')
-				gitHEAD = os.path.join(subdir, 'HEAD')
-				svnDir = os.path.join(subdir, '.svn')
-				
-				# git repo
-				if os.path.exists(gitDir):
-					print "Updating git repo at " + subdir
-					os.chdir(subdir)
-					subprocess.call(["git", "pull"])
-					if args.prune:
-						subprocess.call(["git", "remote", "prune", "origin"])
 
-				# git mirror
-				elif os.path.exists(gitHEAD):
-					print "Updating git mirror at " + subdir
-					os.chdir(subdir)
-					subprocess.call(["git", "fetch"])
-					if args.prune:
-						subprocess.call(["git", "remote", "prune", "origin"])
+def update_dir(args, dir_name):
+    """Processes the specified directory, recursively if necessary."""
 
-				# svn
-				elif os.path.exists(svnDir):
-					print "Updating svn repo at " + subdir
-					os.chdir(subdir)
-					subprocess.call(["svn", "update"])
+    try:
+        for filename in os.listdir(dir_name):
+            subdir = os.path.join(dir_name, filename)
+            if os.path.isdir(subdir):
+                git_dir = os.path.join(subdir, '.git')
+                git_head = os.path.join(subdir, 'HEAD')
+                svn_dir = os.path.join(subdir, '.svn')
 
-				# recurse?
-				elif args.recurse:
-					print "Recursing into " + subdir
-					UpdateDir(args, subdir)
-	except OSError as e:
-		print e
+                # git repo
+                if os.path.exists(git_dir):
+                    print "Updating git repo at " + subdir
+                    os.chdir(subdir)
+                    subprocess.call(["git", "pull"])
+                    if args.prune:
+                        subprocess.call(["git", "remote", "prune", "origin"])
 
-# Parse command line options
-parser = argparse.ArgumentParser()
-parser.add_argument("--root", type=str, action="store", default="", help="Directory to update, ex: --root src/", required=False)
-parser.add_argument("--prune", action="store_true", default=False, help="Prunes local branches not on the remote", required=False)
-parser.add_argument("--recurse", action="store_true", default=False, help="Recurses subdirectories, looking for more repos", required=False)
+                # git mirror
+                elif os.path.exists(git_head):
+                    print "Updating git mirror at " + subdir
+                    os.chdir(subdir)
+                    subprocess.call(["git", "fetch"])
+                    if args.prune:
+                        subprocess.call(["git", "remote", "prune", "origin"])
 
-try:
-	args = parser.parse_args()
-except IOError as e:
-	parser.error(e)
-	sys.exit(1)
+                # svn
+                elif os.path.exists(svn_dir):
+                    print "Updating svn repo at " + subdir
+                    os.chdir(subdir)
+                    subprocess.call(["svn", "update"])
 
-# If the user provides a path then update the repos in that directory.
-# If the user does not provide a path then update the repos in this directory.
-if len(args.root) > 0:
-	rootdir = os.path.realpath(args.root)
-else:
-	rootdir = os.path.dirname(os.path.realpath(__file__))
+                # recurse?
+                elif args.recurse:
+                    print "Recursing into " + subdir
+                    update_dir(args, subdir)
+    except OSError as exception:
+        print exception
 
-# Loop through the top level directories and update git and svn repos, including git mirrors.
-UpdateDir(args, rootdir)
+
+def main():
+    """Function-ified entry point for the program."""
+
+    # Parse command line options.
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root", type=str, action="store", default="",
+                        help="Directory to update, ex: --root src/", required=False)
+    parser.add_argument("--prune", action="store_true", default=False,
+                        help="Prunes local branches not on the remote", required=False)
+    parser.add_argument("--recurse", action="store_true", default=False,
+                        help="Recurses subdirectories, looking for more repos", required=False)
+
+    try:
+        args = parser.parse_args()
+    except IOError as exception:
+        parser.error(exception)
+        sys.exit(1)
+
+    # If the user provides a path then update the repos in that directory.
+    # If the user does not provide a path then update the repos in this directory.
+    if len(args.root) > 0:
+        rootdir = os.path.realpath(args.root)
+    else:
+        rootdir = os.path.dirname(os.path.realpath(__file__))
+
+    # Loop through the top level directories and update git and svn repos, including git mirrors.
+    update_dir(args, rootdir)
+
+
+if __name__ == "__main__":
+    main()
