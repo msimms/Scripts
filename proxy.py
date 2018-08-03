@@ -28,21 +28,14 @@ import threading
 import time
 
 g_server_thread = None
-g_client_threads = []
 
 def signal_handler(signal, frame):
     global g_server_thread
-    global g_client_threads
 
     print "Exiting..."
-    print "Killing the server thread..."
     if g_server_thread:
         g_server_thread.terminate()
         g_server_thread.join()
-    print "Killing client read threads..."
-    for client_thread in g_client_threads:
-        client_thread.terminate()
-        client_thread.join()
     print "Done"
 
 class ClientReadThread(threading.Thread):
@@ -59,60 +52,37 @@ class ClientReadThread(threading.Thread):
 
     def terminate(self):
         """Destructor"""
-        global g_client_threads
-
-        print "Terminating a client read thread."
-        if self in g_client_threads:
-            g_client_threads.remove(self)
         self.stopped.set()
         if self.serversocket is not None:
             self.serversocket.close()
-        if self.clientsocket is not None:
-            self.clientsocket.close()
-        print "Done terminating a client read thread."
+        self.clientsocket.close()
 
-    def read_client_data(self):
+    def copy_data(self, fromsocket, tosocket):
         """Read the next byte and send it to the ultimate destination."""
-        try:
-            data = self.clientsocket.recv(65536, socket.MSG_PEEK)
-            data_len = len(data)
-            if data_len > 0:
-                data = self.clientsocket.recv(data_len)
-                self.serversocket.send(data)
-        except:
-            self.stopped.set()
-
-    def read_server_data(self):
-        """Read the response, if nay, and send it back to the origin."""
-        try:
-            data = self.serversocket.recv(65536, socket.MSG_PEEK)
-            data_len = len(data)
-            if data_len > 0:
-                data = self.serversocket.recv(data_len)
-                self.clientsocket.send(data)
-        except:
-            self.stopped.set()
+        data = fromsocket.recv(65536, socket.MSG_PEEK)
+        data_len = len(data)
+        if data_len > 0:
+            data = fromsocket.recv(data_len)
+            tosocket.send(data)
 
     def run(self):
         """Main run loop."""
-        global g_client_threads
-
-        print "Starting a client read thread."
-
-        # Connect to the ultimate destination.
         self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.serversocket.connect((self.destip, self.destport))
 
-        while not self.stopped.is_set():
-            self.read_client_data()
-            self.read_server_data()
+        try:
+            while not self.stopped.is_set():
+                self.copy_data(self.clientsocket, self.serversocket)
+                self.copy_data(self.serversocket, self.clientsocket)
+        except:
+            pass
 
-        if self.serversocket is not None:
-            self.serversocket.close()
-        if self.clientsocket is not None:
-            self.clientsocket.close()
+        self.serversocket.close()
+        self.clientsocket.close()
 
-        print "Closed a client read socket."
+        # Let the server thread know that we're done.
+        global g_server_thread
+        g_server_thread.remove_client_thread(self)
 
 class ServerProxy(threading.Thread):
     """This class listens for connections from clients and spawns a thread to manage each connection."""
@@ -125,15 +95,34 @@ class ServerProxy(threading.Thread):
         self.destip = destip
         self.destport = destport
         self.proxysocket = None
+        self.client_threads = []
+        self.client_list_lock = threading.Lock()
 
     def terminate(self):
         """Destructor"""
-        print "Terminating the server proxy."
         self.stopped.set()
-        if self.proxysocket is not None:
-            print "Closing the server socket."
-            self.proxysocket.close()
-        print "Done terminating the server proxy."
+        self.join_client_threads()
+
+    def add_client_thread(self, client_thread):
+        """Stores a reference to a client read thread."""
+        self.client_list_lock.acquire()
+        self.client_threads.append(client_thread)
+        self.client_list_lock.release()
+
+    def remove_client_thread(self, client_thread):
+        """Removes the client read thread from the list of threads."""
+        self.client_list_lock.acquire()
+        if client_thread in self.client_threads:
+            self.client_threads.remove(client_thread)
+        self.client_list_lock.release()
+
+    def join_client_threads(self):
+        """Joins all the client threads. Helps when shutting the application down cleanly."""
+        self.client_list_lock.acquire()
+        for client_thread in self.client_threads:
+            client_thread.terminate()
+            client_thread.join()
+        self.client_list_lock.release()
 
     def run(self):
         """Main run loop."""
@@ -141,12 +130,14 @@ class ServerProxy(threading.Thread):
         self.proxysocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.proxysocket.bind((self.bindip, self.bindport))
         self.proxysocket.listen(1)
+        self.proxysocket.settimeout(0.2)
         while not self.stopped.is_set():
-            conn, addr = self.proxysocket.accept()
-            if conn is not None:
+            try:
+                conn, addr = self.proxysocket.accept()
                 client_thread = ClientReadThread(conn, addr, self.destip, self.destport)
-                g_client_threads.append(client_thread) # Register the new thread for signals
                 client_thread.start()
+            except socket.timeout:
+                pass
         self.proxysocket.close()
         print "Closed the server listen thread."
 
