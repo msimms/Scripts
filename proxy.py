@@ -21,6 +21,9 @@
 # SOFTWARE.
 
 import argparse
+import imp
+import logging
+import os
 import signal
 import socket
 import sys
@@ -41,7 +44,7 @@ def signal_handler(signal, frame):
 class ClientReadThread(threading.Thread):
     """An instance of this class is created for each client connection."""
 
-    def __init__(self, conn, addr, destip, destport):
+    def __init__(self, conn, addr, destip, destport, post_file):
         threading.Thread.__init__(self)
         self.stopped = threading.Event()
         self.serversocket = None
@@ -49,6 +52,7 @@ class ClientReadThread(threading.Thread):
         self.addr = addr
         self.destip = destip
         self.destport = destport
+        self.post_file = post_file
 
     def terminate(self):
         """Destructor"""
@@ -57,12 +61,23 @@ class ClientReadThread(threading.Thread):
             self.serversocket.close()
         self.clientsocket.close()
 
+    def do_packet_processing(self, data, data_len):
+        """Executes the packet processing code. This is where the user can specify logic to run for each packet."""
+        try:
+            if os.path.isfile(self.post_file):
+                loaded_module = imp.load_source("", self.post_file)
+                loaded_module.process_packet(data, data_len)
+        except:
+            logging.error("Error collecting network stats.")
+
     def copy_data(self, fromsocket, tosocket):
         """Read the next byte and send it to the ultimate destination."""
         data = fromsocket.recv(65536, socket.MSG_PEEK)
         data_len = len(data)
         if data_len > 0:
             data = fromsocket.recv(data_len)
+            if self.post_file is not None and len(self.post_file) > 0:
+                self.do_packet_processing(data, data_len)
             tosocket.send(data)
 
     def run(self):
@@ -87,7 +102,7 @@ class ClientReadThread(threading.Thread):
 class ServerProxy(threading.Thread):
     """This class listens for connections from clients and spawns a thread to manage each connection."""
 
-    def __init__(self, bindip, bindport, destip, destport):
+    def __init__(self, bindip, bindport, destip, destport, post_file):
         threading.Thread.__init__(self)
         self.stopped = threading.Event()
         self.bindip = bindip
@@ -97,6 +112,7 @@ class ServerProxy(threading.Thread):
         self.proxysocket = None
         self.client_threads = []
         self.client_list_lock = threading.Lock()
+        self.post_file = post_file
 
     def terminate(self):
         """Destructor"""
@@ -134,7 +150,7 @@ class ServerProxy(threading.Thread):
         while not self.stopped.is_set():
             try:
                 conn, addr = self.proxysocket.accept()
-                client_thread = ClientReadThread(conn, addr, self.destip, self.destport)
+                client_thread = ClientReadThread(conn, addr, self.destip, self.destport, self.post_file)
                 client_thread.start()
             except socket.timeout:
                 pass
@@ -150,6 +166,7 @@ def main():
     parser.add_argument("--bindport", type=int, default=8080, help="Port on which to bind", required=False)
     parser.add_argument("--destip", default="127.0.0.1", help="Host name to which data is sent", required=False)
     parser.add_argument("--destport", type=int, default=8080, help="Port to which data is sent", required=False)
+    parser.add_argument("--post", type=str, action="store", default="", help="Post processing code module (optional)", required=False)
 
     try:
         args = parser.parse_args()
@@ -159,7 +176,7 @@ def main():
 
     signal.signal(signal.SIGINT, signal_handler)
 
-    g_server_thread = ServerProxy(args.bindip, args.bindport, args.destip, args.destport)
+    g_server_thread = ServerProxy(args.bindip, args.bindport, args.destip, args.destport, args.post)
     g_server_thread.start()
 
     # Wait for it to finish. We do it like this so that the main thread isn't blocked and can execute the signal handler.
