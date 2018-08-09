@@ -22,5 +22,5 @@
 """Trivial example showing a script that can be passed as part of the proxy's packet processing functionality."""
 
 def process_packet(data, data_len):
-    """This is called for each packet."""
-    pass
+    """This is called for each packet. This is where we can modify the data being proxied."""
+    return data, data_len

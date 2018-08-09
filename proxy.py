@@ -29,6 +29,7 @@ import socket
 import sys
 import threading
 import time
+import IN
 
 g_server_thread = None
 
@@ -66,9 +67,10 @@ class ClientReadThread(threading.Thread):
         try:
             if os.path.isfile(self.post_file):
                 loaded_module = imp.load_source("", self.post_file)
-                loaded_module.process_packet(data, data_len)
+                data, data_len = loaded_module.process_packet(data, data_len)
         except:
             logging.error("Error collecting network stats.")
+        return data, data_len
 
     def copy_data(self, fromsocket, tosocket):
         """Read the next byte and send it to the ultimate destination."""
@@ -77,7 +79,7 @@ class ClientReadThread(threading.Thread):
         if data_len > 0:
             data = fromsocket.recv(data_len)
             if self.post_file is not None and len(self.post_file) > 0:
-                self.do_packet_processing(data, data_len)
+                data, data_len = self.do_packet_processing(data, data_len)
             tosocket.send(data)
 
     def run(self):
