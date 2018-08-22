@@ -54,6 +54,9 @@ class ClientReadThread(threading.Thread):
         self.destip = destip
         self.destport = destport
         self.post_file = post_file
+        self.post_module = None
+        if os.path.isfile(self.post_file):
+            self.post_module = imp.load_source("", self.post_file)
 
     def terminate(self):
         """Destructor"""
@@ -65,11 +68,10 @@ class ClientReadThread(threading.Thread):
     def do_packet_processing(self, data, data_len):
         """Executes the packet processing code. This is where the user can specify logic to run for each packet."""
         try:
-            if os.path.isfile(self.post_file):
-                loaded_module = imp.load_source("", self.post_file)
-                data, data_len = loaded_module.process_packet(data, data_len)
+            if self.post_module is not None:
+                data, data_len = self.post_module.process_packet(data, data_len)
         except:
-            logging.error("Error collecting network stats.")
+            logging.error("Error processing the packet.")
         return data, data_len
 
     def copy_data(self, fromsocket, tosocket):
