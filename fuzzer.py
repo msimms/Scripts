@@ -20,6 +20,7 @@
 #  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 #  SOFTWARE.
 
+import numpy
 import random
 
 MAX_MODS = 'max modifications'
@@ -49,7 +50,9 @@ class Fuzzer(object):
     def insert_random_data(self, data, data_len):
         """Inserts random data into the buffer, increasing it's length."""
         index = random.randint(0, data_len - 1)
-        data[index:0] = bytearray([random.randint(0, 255)])
+        num_bytes = int(numpy.random.lognormal() * 10)
+        for _ in range(0,num_bytes-1):
+            data[index:0] = bytearray([random.randint(0, 255)])
         return data, data_len + 1
 
     def delete_random_data(self, data, data_len):
