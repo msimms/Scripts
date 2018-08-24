@@ -49,7 +49,8 @@ class Fuzzer(object):
     def insert_random_data(self, data, data_len):
         """Inserts random data into the buffer, increasing it's length."""
         index = random.randint(0, data_len - 1)
-        return data, data_len
+        data[index:0] = bytearray([random.randint(0, 255)])
+        return data, data_len + 1
 
     def delete_random_data(self, data, data_len):
         """Removes a random amount of data from the buffer."""
