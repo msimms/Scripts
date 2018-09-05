@@ -52,6 +52,24 @@ def signal_handler(signal, frame):
         g_task_thread.join()
     print "Done"
 
+def post_to_slack(config, message):
+    """Post a message to the the slack channel specified in the configuration file."""
+    try:
+        key = config.get('Slack', 'key')
+        channel = config.get('Slack', 'channel')
+
+        from slacker import Slacker
+        slack = Slacker(key)
+        slack.chat.post_message(channel, message)
+    except ConfigParser.NoOptionError:
+        pass
+    except ConfigParser.NoSectionError:
+        pass
+    except ImportError:
+        print "Failed ot import Slacker. Cannot post to Slack. Either install the module or remove the Slack section from the configuration file."
+    except:
+        pass
+
 class TaskThread(threading.Thread):
     """An instance of this class runs a subprocess."""
 
@@ -127,12 +145,14 @@ def select_coin(config, coins):
             return cmd, wd
     return None, None
 
-def start_task(cmd, working_dir):
+def start_task(config, cmd, working_dir):
     """Starts the miner thread."""
     global g_task_thread
 
     if cmd is None:
         return
+    
+    post_to_slack(config, "Starting " + cmd + " on " + platform.node() + ".")
     g_task_thread = TaskThread(cmd, working_dir)
     g_task_thread.start()
 
@@ -157,7 +177,7 @@ def manage(config):
                 cmd, working_dir = get_task_cmd(config, task)
             if cmd is not None and len(cmd) > 0:
                 print "Starting the task..."
-                start_task(cmd, working_dir)
+                start_task(config, cmd, working_dir)
         time.sleep(1)
 
 def load_config(config_file_name):
