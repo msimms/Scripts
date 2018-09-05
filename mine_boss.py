@@ -27,6 +27,8 @@ import json
 import io
 import os
 import sys
+import platform
+import random
 import requests
 import signal
 import subprocess
@@ -34,7 +36,9 @@ import threading
 import time
 import ConfigParser
 
-g_miner_thread = None
+TASK_BEST_COIN = "Best Coin"
+
+g_task_thread = None
 g_stop = False
 
 def signal_handler(signal, frame):
@@ -43,13 +47,13 @@ def signal_handler(signal, frame):
 
     print "Exiting..."
     g_stop = True
-    if g_miner_thread:
-        g_miner_thread.terminate()
-        g_miner_thread.join()
+    if g_task_thread:
+        g_task_thread.terminate()
+        g_task_thread.join()
     print "Done"
 
-class MinerThread(threading.Thread):
-    """An instance of this class runs the miner."""
+class TaskThread(threading.Thread):
+    """An instance of this class runs a subprocess."""
 
     def __init__(self, cmd, working_dir):
         threading.Thread.__init__(self)
@@ -70,6 +74,36 @@ class MinerThread(threading.Thread):
         subprocess.call(self.cmd, shell=True)
         print "Subprocess terminated."
 
+def select_task(config):
+    """Selects the next task, based on the rules in the configuration file."""
+    task = TASK_BEST_COIN # The default task
+    try:
+        task_list_str = config.get('General', 'tasks')
+        task_list = task_list_str.split(',')
+        task = task_list[random.randint(0, len(task_list) - 1)]
+    except ConfigParser.NoOptionError:
+        pass
+    except ConfigParser.NoSectionError:
+        pass
+    return task
+
+def get_task_cmd(config, task):
+    """Returns the command to run the specified task."""
+    try:
+        cmd = config.get(task, 'cmd')
+        if len(task) > 0:
+            wd = None
+            try:
+                wd = config.get(task, 'working dir')
+            except ConfigParser.NoSectionError:
+                pass
+            return cmd, wd
+    except ConfigParser.NoOptionError:
+        print "Command line not specified for " + task + "."
+    except ConfigParser.NoSectionError:
+        print "Section not specified for " + task + "."
+    return None, None
+
 def list_coins():
     """Returns a JSON list of coins to mine, in order of profitability."""
     try:
@@ -88,41 +122,42 @@ def select_coin(config, coins):
     if coins is None:
         return
     for coin in coins:
-        try:
-            cmd = config.get(coin, 'cmd')
-            if len(cmd) > 0:
-                wd = None
-                try:
-                    wd = config.get(coin, 'working dir')
-                except ConfigParser.NoSectionError:
-                    pass
-                return cmd, wd
-        except ConfigParser.NoSectionError:
-            pass
+        cmd, wd = get_task_cmd(config, coin)
+        if cmd is not None:
+            return cmd, wd
     return None, None
 
-def start_miner(cmd, working_dir):
+def start_task(cmd, working_dir):
     """Starts the miner thread."""
-    global g_miner_thread
+    global g_task_thread
 
     if cmd is None:
         return
-    g_miner_thread = MinerThread(cmd, working_dir)
-    g_miner_thread.start()
+    g_task_thread = TaskThread(cmd, working_dir)
+    g_task_thread.start()
 
 def manage(config):
     """Implements the program logic."""
-    global g_miner_thread
+    global g_task_thread
     global g_stop
 
+    cmd = None
+    working_dir = None
+
     while not g_stop:
-        if g_miner_thread is None or not g_miner_thread.isAlive():
-            print "Retrieving coin list..."
-            coins = list_coins()
-            print "Selecting the coin to mine..."
-            cmd, working_dir = select_coin(config, coins)
-            print "Starting the miner..."
-            start_miner(cmd, working_dir)
+        if g_task_thread is None or not g_task_thread.isAlive():
+            print "Selecting task..."
+            task = select_task(config)
+            if task == TASK_BEST_COIN:
+                print "Retrieving coin list..."
+                coins = list_coins()
+                print "Selecting the coin to mine..."
+                cmd, working_dir = select_coin(config, coins)
+            else:
+                cmd, working_dir = get_task_cmd(config, task)
+            if cmd is not None and len(cmd) > 0:
+                print "Starting the task..."
+                start_task(cmd, working_dir)
         time.sleep(1)
 
 def load_config(config_file_name):
