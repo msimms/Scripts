@@ -26,37 +26,38 @@ import os
 import sys
 import fuzzer
 
-def fuzz_file(fuzz, in_file_name, out_dir):
+def fuzz_file(fuzz, in_file_name, out_dir, n):
     """Fuzzes a file once, using the supplied fuzzer instance, and stores the output in the specified directory using the SHA-256 hash as the name."""
     try:
         # Read the file into memory.
         with open(in_file_name, 'rb') as in_file:
             in_contents = in_file.read()
 
-            # Fuzz the contents.
-            print "Fuzzing " + in_file_name + "..."
-            out_contents, _ = fuzz.fuzz(in_contents, len(in_contents))
+            for _ in range(0,n):
+                # Fuzz the contents.
+                print "Fuzzing " + in_file_name + "..."
+                out_contents, _ = fuzz.fuzz(in_contents, len(in_contents))
 
-            # Hash the contents.
-            hash_algorithm = hashlib.sha256()
-            hash_algorithm.update(in_contents)
-            hash_str = hash_algorithm.hexdigest()
+                # Hash the contents.
+                hash_algorithm = hashlib.sha256()
+                hash_algorithm.update(out_contents)
+                hash_str = hash_algorithm.hexdigest()
 
-            # Write the output file.
-            out_file_name = os.path.join(out_dir, hash_str)
-            print "Writing the fuzzed contents to " + out_file_name + "..."
-            with open(out_file_name, 'wb') as out_file:
-                out_file.write(out_contents)
-            print "Done."
+                # Write the output file.
+                out_file_name = os.path.join(out_dir, hash_str)
+                print "Writing the fuzzed contents to " + out_file_name + "..."
+                with open(out_file_name, 'wb') as out_file:
+                    out_file.write(out_contents)
+                print "Done."
     except:
         print "Exception when fuzzing " + in_file_name
 
-def fuzz_dir(fuzz, in_dir, out_dir):
+def fuzz_dir(fuzz, in_dir, out_dir, n):
     """Fuzzes all the files in the specified directory, storing the results in the given output directory."""
     for r, d, f in os.walk(in_dir):
         for in_file_name in f:
-            in_file_name = os.path.join(r, file)
-            fuzz_file(fuzz, in_file_name, out_dir)
+            complete_in_file_name = os.path.join(r, in_file_name)
+            fuzz_file(fuzz, complete_in_file_name, out_dir, n)
 
 def main():
     # Parse command line options.
@@ -64,6 +65,7 @@ def main():
     parser.add_argument("--in-file", default="", help="Name of the file to fuzz", required=False)
     parser.add_argument("--in-dir", default="", help="Name of the directory to fuzz", required=False)
     parser.add_argument("--out-dir", default="", help="Name of the directory to receiving the fuzzed files", required=False)
+    parser.add_argument("--n", type=int, default=1, help="The number of output files to create for each input file.", required=False)
 
     try:
         args = parser.parse_args()
@@ -76,11 +78,11 @@ def main():
 
     # Are we fuzzing an individual file?
     if len(args.in_file) > 0:
-        fuzz_file(fuzz, args.in_file, args.out_dir)
+        fuzz_file(fuzz, args.in_file, args.out_dir, args.n)
 
     # Are we fuzzing a complete directory?
     if len(args.in_dir) > 0:
-        fuzz_dir(fuzz, args.in_dir, args.out_dir)
+        fuzz_dir(fuzz, args.in_dir, args.out_dir, args.n)
 
 if __name__ == "__main__":
     main()
