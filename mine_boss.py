@@ -28,6 +28,7 @@ import io
 import os
 import sys
 import platform
+import psutil
 import random
 import requests
 import signal
@@ -83,18 +84,23 @@ class TaskThread(threading.Thread):
 
     def terminate(self):
         """Destructor"""
-        self.terminate_proc()
+        self.terminate_proc(self.proc)
 
-    def terminate_proc(self):
+    def terminate_proc(self, proc):
         """Terminates the process if it is running, first by sending SIG_TERM, then SIG_KILL."""
-        if self.proc is not None and self.proc.poll() is None:
-            print "Asking process to terminate..."
-            self.proc.terminate()
+        if proc is not None and proc.poll() is None:
+            print "Listing child processes..."
+            children = psutil.Process(proc.pid).children(recursive=True)
+            print "Asking parent process to terminate..."
+            proc.terminate()
             print "Waiting three seconds..."
             time.sleep(3)
-            if self.proc.poll() is None:
-                print "Killing process..."
-                self.proc.kill()
+            if proc.poll() is None:
+                print "Killing parent process..."
+                proc.kill()
+            print "Terminating child processes..."
+            for child_proc in children:
+                self.terminate_proc(child_proc)
 
     def run(self):
         """Main run loop."""
@@ -117,7 +123,7 @@ class TaskThread(threading.Thread):
                     current_duration = int(time.time() - self.start_time)
                     if current_duration > self.max_duration:
                         print "The maximum duration has expired."
-                        self.terminate_proc()
+                        self.terminate_proc(self.proc)
             print "Subprocess terminated."
         except OSError:
             print "OS Error. Process not started."
