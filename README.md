@@ -1,6 +1,12 @@
 # Scripts
 A random collection of useful scripts. These are mostly intended for myself, but others can use them if they so desire.
 
+## file_fuzzer.py
+A very simple file fuzzer.
+```sh
+python file_fuzzer.py --in-dir ~/input_data/ --out-dir ~/output_data/ --n 3
+```
+
 ## fuzzer.py
 Implements simple fuzzing logic. Not meant to be called directly, but instead imported into another script to perform network or file fuzzing.
 
