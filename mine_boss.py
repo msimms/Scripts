@@ -133,14 +133,18 @@ def list_coins():
         pass
     return None
 
+def get_key(item):
+    coin_data = item[1]
+    return coin_data['profitability24']
+
 def select_coin(config, coins):
     """Select the coin to mine, should be one we have a config entry for."""
     if config is None:
         return
     if coins is None:
         return
-    for coin in coins:
-        cmd, wd = get_task_cmd(config, coin)
+    for coin_name, _ in sorted(coins.iteritems(), key=get_key, reverse=True):
+        cmd, wd = get_task_cmd(config, coin_name)
         if cmd is not None:
             return cmd, wd
     return None, None
