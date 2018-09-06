@@ -74,7 +74,6 @@ class Fuzzer(object):
         """Performs a single modification to the buffer."""
         modifications = self.allowed_modifications()
         mod_to_perform = modifications[random.randint(0, len(modifications) - 1)]
-        print mod_to_perform
         if mod_to_perform == MOD_CHANGE:
             data = self.modify_random_byte(data, data_len)
         elif mod_to_perform == MOD_INSERT:
