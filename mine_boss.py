@@ -73,24 +73,54 @@ def post_to_slack(config, message):
 class TaskThread(threading.Thread):
     """An instance of this class runs a subprocess."""
 
-    def __init__(self, cmd, working_dir):
+    def __init__(self, cmd, working_dir, max_duration):
         threading.Thread.__init__(self)
-        self.stopped = threading.Event()
         self.cmd = cmd
         self.wd = working_dir
+        self.max_duration = max_duration
+        self.start_time = 0
+        self.proc = None
 
     def terminate(self):
         """Destructor"""
-        self.stopped.set()
+        self.terminate_proc()
+
+    def terminate_proc(self):
+        """Terminates the process if it is running, first by sending SIG_TERM, then SIG_KILL."""
+        if self.proc is not None and self.proc.poll() is None:
+            print "Asking process to terminate..."
+            self.proc.send_signal(signal.SIGTERM)
+            print "Waiting..."
+            time.sleep(3)
+            if self.proc.poll() is None:
+                print "Killing process..."
+                self.proc.kill()
 
     def run(self):
         """Main run loop."""
+
+        # Set the working directory.
         if self.wd is not None and len(self.wd) > 0:
             print "Changing the working directory..."
             os.chdir(self.wd)
-        print "Starting subprocess: " + self.cmd + "..."
-        subprocess.call(self.cmd, shell=True)
-        print "Subprocess terminated."
+
+        # Start the process.
+        try:
+            print "Starting subprocess: " + self.cmd + "..."
+            self.proc = subprocess.Popen(self.cmd)
+            self.start_time = time.time()
+
+            # Wait for the process to terminate.
+            while self.proc.poll() is None:
+                time.sleep(1)
+                if self.max_duration is not None and self.max_duration > 0:
+                    current_duration = int(time.time() - self.start_time)
+                    if current_duration > self.max_duration:
+                        print "The maximum duration has expired."
+                        self.terminate_proc()
+            print "Subprocess terminated."
+        except OSError:
+            print "OS Error. Process not started."
 
 def select_task(config):
     """Selects the next task, based on the rules in the configuration file."""
@@ -105,22 +135,40 @@ def select_task(config):
         pass
     return task
 
+def unquote(value):
+    if value.startswith('"') and value.endswith('"'):
+        value = value[1:-1]
+    return value
+
 def get_task_cmd(config, task):
     """Returns the command to run the specified task."""
     try:
         cmd = config.get(task, 'cmd')
-        if len(task) > 0:
-            wd = None
-            try:
-                wd = config.get(task, 'working dir')
-            except ConfigParser.NoSectionError:
-                pass
-            return cmd, wd
+        cmd = unquote(cmd)
+
+        wd = None
+        try:
+            wd = config.get(task, 'working dir')
+            wd = unquote(wd)
+        except ConfigParser.NoOptionError:
+            pass
+        except ConfigParser.NoSectionError:
+            pass
+
+        duration = None
+        try:
+            duration = int(config.get(task, 'max duration'))
+        except ConfigParser.NoOptionError:
+            pass
+        except ConfigParser.NoSectionError:
+            pass
+
+        return cmd, wd, duration
     except ConfigParser.NoOptionError:
         print "Command line not specified for " + task + "."
     except ConfigParser.NoSectionError:
         print "Section not specified for " + task + "."
-    return None, None
+    return None, None, None
 
 def list_coins():
     """Returns a JSON list of coins to mine, in order of profitability."""
@@ -144,12 +192,12 @@ def select_coin(config, coins):
     if coins is None:
         return
     for coin_name, _ in sorted(coins.iteritems(), key=get_key, reverse=True):
-        cmd, wd = get_task_cmd(config, coin_name)
+        cmd, wd, duration = get_task_cmd(config, coin_name)
         if cmd is not None:
-            return cmd, wd
-    return None, None
+            return cmd, wd, duration
+    return None, None, None
 
-def start_task(config, cmd, working_dir):
+def start_task(config, cmd, working_dir, duration):
     """Starts the miner thread."""
     global g_task_thread
 
@@ -157,7 +205,7 @@ def start_task(config, cmd, working_dir):
         return
     
     post_to_slack(config, "Starting " + cmd + " on " + platform.node() + ".")
-    g_task_thread = TaskThread(cmd, working_dir)
+    g_task_thread = TaskThread(cmd, working_dir, duration)
     g_task_thread.start()
 
 def manage(config):
@@ -176,12 +224,12 @@ def manage(config):
                 print "Retrieving coin list..."
                 coins = list_coins()
                 print "Selecting the coin to mine..."
-                cmd, working_dir = select_coin(config, coins)
+                cmd, working_dir, duration = select_coin(config, coins)
             else:
-                cmd, working_dir = get_task_cmd(config, task)
+                cmd, working_dir, duration = get_task_cmd(config, task)
             if cmd is not None and len(cmd) > 0:
                 print "Starting the task..."
-                start_task(config, cmd, working_dir)
+                start_task(config, cmd, working_dir, duration)
         time.sleep(1)
 
 def load_config(config_file_name):
