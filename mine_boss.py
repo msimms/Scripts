@@ -89,8 +89,8 @@ class TaskThread(threading.Thread):
         """Terminates the process if it is running, first by sending SIG_TERM, then SIG_KILL."""
         if self.proc is not None and self.proc.poll() is None:
             print "Asking process to terminate..."
-            self.proc.send_signal(signal.SIGTERM)
-            print "Waiting..."
+            self.proc.terminate()
+            print "Waiting three seconds..."
             time.sleep(3)
             if self.proc.poll() is None:
                 print "Killing process..."
