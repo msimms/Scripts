@@ -27,6 +27,7 @@ import sys
 import fuzzer
 
 def fuzz_file(fuzz, in_file_name, out_dir):
+    """Fuzzes a file once, using the supplied fuzzer instance, and stores the output in the specified directory using the SHA-256 hash as the name."""
     try:
         # Read the file into memory.
         with open(in_file_name, 'rb') as in_file:
@@ -51,7 +52,11 @@ def fuzz_file(fuzz, in_file_name, out_dir):
         print "Exception when fuzzing " + in_file_name
 
 def fuzz_dir(fuzz, in_dir, out_dir):
-    pass
+    """Fuzzes all the files in the specified directory, storing the results in the given output directory."""
+    for r, d, f in os.walk(in_dir):
+        for in_file_name in f:
+            in_file_name = os.path.join(r, file)
+            fuzz_file(fuzz, in_file_name, out_dir)
 
 def main():
     # Parse command line options.
