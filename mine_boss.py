@@ -157,7 +157,7 @@ def get_task_cmd(config, task):
 
         duration = None
         try:
-            duration = int(config.get(task, 'max duration'))
+            duration = int(config.get(task, 'max duration')) * 60
         except ConfigParser.NoOptionError:
             pass
         except ConfigParser.NoSectionError:
