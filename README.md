@@ -8,7 +8,12 @@ python file_fuzzer.py --in-dir ~/input_data/ --out-dir ~/output_data/ --n 3
 ```
 
 ## fuzzer.py
-Implements simple fuzzing logic. Not meant to be called directly, but instead imported into another script to perform network or file fuzzing.
+Implements simple fuzzing logic. Not meant to be called directly, but instead imported into another script to perform network or file fuzzing. Options are passed to the constructor as a dictionary.
+```python
+import fuzzer
+fuzz = fuzzer.Fuzzer({})
+out_contents, out_len = fuzz.fuzz(in_contents, len(in_contents))
+```
 
 ## mine_boss.py
 A python script for scheduling compute tasks. Originally intended to swap between miners, keeping the computer on the most profitable coin, but can be used for scheduling non-mining tasks as well. Logic is controlled from the configuration file, an example of which is provided.
