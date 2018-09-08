@@ -203,14 +203,14 @@ def select_coin(config, coins):
             return cmd, wd, duration
     return None, None, None
 
-def start_task(config, cmd, working_dir, duration):
+def start_task(config, cmd, task, working_dir, duration):
     """Starts the miner thread."""
     global g_task_thread
 
     if cmd is None:
         return
     
-    post_to_slack(config, "Starting " + cmd + " on " + platform.node() + ".")
+    post_to_slack(config, "Starting " + cmd + " on " + platform.node() + " for task " + task + ".")
     g_task_thread = TaskThread(cmd, working_dir, duration)
     g_task_thread.start()
 
@@ -235,7 +235,7 @@ def manage(config):
                 cmd, working_dir, duration = get_task_cmd(config, task)
             if cmd is not None and len(cmd) > 0:
                 print "Starting the task..."
-                start_task(config, cmd, working_dir, duration)
+                start_task(config, cmd, task, working_dir, duration)
         time.sleep(1)
 
 def load_config(config_file_name):
