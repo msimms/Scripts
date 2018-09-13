@@ -27,6 +27,9 @@ A simple network proxy for use in fuzz testing my own code.
 python proxy.py --bindip 127.0.0.1 --bindport 8080 --destip 127.0.0.1 --destport 80 --post do_stuff.py
 ```
 
+## shell_over_slack.py
+This is a very dumb script and no one should use it. It listens to a Slack channel for commands and then does them.
+
 ## update_all_repos.py
 A python script that (optionally) recurses through a directory looking for git repos. When a git repo is found it updates it and (optionally) prunes local branches that are no longer on the remote.
 ```sh
