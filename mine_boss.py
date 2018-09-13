@@ -100,7 +100,7 @@ class TaskThread(threading.Thread):
                 proc.kill()
             print "Terminating child processes..."
             for child_proc in children:
-                self.terminate_proc(child_proc)
+                child_proc.terminate()
 
     def run(self):
         """Main run loop."""
