@@ -91,6 +91,9 @@ class TaskThread(threading.Thread):
         if proc is not None and proc.poll() is None:
             print "Listing child processes..."
             children = psutil.Process(proc.pid).children(recursive=True)
+            print "Terminating child processes..."
+            for child_proc in children:
+                child_proc.terminate()
             print "Asking parent process to terminate..."
             proc.terminate()
             print "Waiting three seconds..."
@@ -98,9 +101,6 @@ class TaskThread(threading.Thread):
             if proc.poll() is None:
                 print "Killing parent process..."
                 proc.kill()
-            print "Terminating child processes..."
-            for child_proc in children:
-                child_proc.terminate()
 
     def run(self):
         """Main run loop."""
