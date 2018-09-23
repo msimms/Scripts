@@ -38,6 +38,7 @@ import time
 import ConfigParser
 
 TASK_BEST_COIN = "Best Coin"
+TASK_SLEEP = "Sleep"
 
 g_task_thread = None
 g_stop = False
@@ -203,6 +204,19 @@ def select_coin(config, coins):
             return cmd, wd, duration
     return None, None, None
 
+def go_to_sleep(config):
+    """Implements the 'sleep' task as specified in the configuration file."""
+    if config is None:
+        return
+    try:
+        duration_str = config.get(TASK_SLEEP, 'duration')
+        duration = float(duration_str)
+        time.sleep(duration)
+    except ConfigParser.NoOptionError:
+        print "Duration not specified for task sleep."
+    except ConfigParser.NoSectionError:
+        print "Section not specified for task sleep."
+
 def start_task(config, cmd, task, working_dir, duration):
     """Starts the miner thread."""
     global g_task_thread
@@ -231,6 +245,9 @@ def manage(config):
                 coins = list_coins()
                 print "Selecting the coin to mine..."
                 cmd, working_dir, duration = select_coin(config, coins)
+            elif task == TASK_SLEEP:
+                print "Sleeping..."
+                go_to_sleep(config)
             else:
                 cmd, working_dir, duration = get_task_cmd(config, task)
             if cmd is not None and len(cmd) > 0:
