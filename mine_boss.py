@@ -47,12 +47,12 @@ def signal_handler(signal, frame):
     global g_server_thread
     global g_stop
 
-    print "Exiting..."
+    print("Exiting...")
     g_stop = True
     if g_task_thread:
         g_task_thread.terminate()
         g_task_thread.join()
-    print "Done"
+    print("Done")
 
 def post_to_slack(config, message):
     """Post a message to the the slack channel specified in the configuration file."""
@@ -68,7 +68,7 @@ def post_to_slack(config, message):
     except ConfigParser.NoSectionError:
         pass
     except ImportError:
-        print "Failed ot import Slacker. Cannot post to Slack. Either install the module or remove the Slack section from the configuration file."
+        print("Failed ot import Slacker. Cannot post to Slack. Either install the module or remove the Slack section from the configuration file.")
     except:
         pass
 
@@ -90,17 +90,17 @@ class TaskThread(threading.Thread):
     def terminate_proc(self, proc):
         """Terminates the process if it is running, first by sending SIG_TERM, then SIG_KILL."""
         if proc is not None and proc.poll() is None:
-            print "Listing child processes..."
+            print("Listing child processes...")
             children = psutil.Process(proc.pid).children(recursive=True)
-            print "Terminating child processes..."
+            print("Terminating child processes...")
             for child_proc in children:
                 child_proc.terminate()
-            print "Asking parent process to terminate..."
+            print("Asking parent process to terminate...")
             proc.terminate()
-            print "Waiting three seconds..."
+            print("Waiting three seconds...")
             time.sleep(3)
             if proc.poll() is None:
-                print "Killing parent process..."
+                print("Killing parent process...")
                 proc.kill()
 
     def run(self):
@@ -108,12 +108,12 @@ class TaskThread(threading.Thread):
 
         # Set the working directory.
         if self.wd is not None and len(self.wd) > 0:
-            print "Changing the working directory..."
+            print("Changing the working directory...")
             os.chdir(self.wd)
 
         # Start the process.
         try:
-            print "Starting subprocess: " + self.cmd + "..."
+            print("Starting subprocess: " + self.cmd + "...")
             self.proc = subprocess.Popen(self.cmd)
             self.start_time = time.time()
 
@@ -123,11 +123,11 @@ class TaskThread(threading.Thread):
                 if self.max_duration is not None and self.max_duration > 0:
                     current_duration = int(time.time() - self.start_time)
                     if current_duration > self.max_duration:
-                        print "The maximum duration has expired."
+                        print("The maximum duration has expired.")
                         self.terminate_proc(self.proc)
-            print "Subprocess terminated."
+            print("Subprocess terminated.")
         except OSError:
-            print "OS Error. Process not started."
+            print("OS Error. Process not started.")
 
 def select_task(config):
     """Selects the next task, based on the rules in the configuration file."""
@@ -172,9 +172,9 @@ def get_task_cmd(config, task):
 
         return cmd, wd, duration
     except ConfigParser.NoOptionError:
-        print "Command line not specified for " + task + "."
+        print("Command line not specified for " + task + ".")
     except ConfigParser.NoSectionError:
-        print "Section not specified for " + task + "."
+        print("Section not specified for " + task + ".")
     return None, None, None
 
 def list_coins():
@@ -213,9 +213,9 @@ def go_to_sleep(config):
         duration = float(duration_str)
         time.sleep(duration)
     except ConfigParser.NoOptionError:
-        print "Duration not specified for task sleep."
+        print("Duration not specified for task Sleep.")
     except ConfigParser.NoSectionError:
-        print "Section not specified for task sleep."
+        print("Section not specified for task Sleep.")
 
 def start_task(config, cmd, task, working_dir, duration):
     """Starts the miner thread."""
@@ -238,20 +238,20 @@ def manage(config):
 
     while not g_stop:
         if g_task_thread is None or not g_task_thread.isAlive():
-            print "Selecting task..."
+            print("Selecting task...")
             task = select_task(config)
             if task == TASK_BEST_COIN:
-                print "Retrieving coin list..."
+                print("Retrieving coin list...")
                 coins = list_coins()
-                print "Selecting the coin to mine..."
+                print("Selecting the coin to mine...")
                 cmd, working_dir, duration = select_coin(config, coins)
             elif task == TASK_SLEEP:
-                print "Sleeping..."
+                print("Sleeping...")
                 go_to_sleep(config)
             else:
                 cmd, working_dir, duration = get_task_cmd(config, task)
             if cmd is not None and len(cmd) > 0:
-                print "Starting the task..."
+                print("Starting the task...")
                 start_task(config, cmd, task, working_dir, duration)
         time.sleep(1)
 
