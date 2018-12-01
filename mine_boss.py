@@ -250,7 +250,7 @@ def manage(config):
                 go_to_sleep(config)
             else:
                 cmd, working_dir, duration = get_task_cmd(config, task)
-            if cmd is not None and len(cmd) > 0:
+            if cmd is not None and len(cmd) > 0 and cmd is not TASK_SLEEP:
                 print("Starting the task...")
                 start_task(config, cmd, task, working_dir, duration)
         time.sleep(1)
