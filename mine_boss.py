@@ -211,7 +211,7 @@ def go_to_sleep(config):
     try:
         duration_str = config.get(TASK_SLEEP, 'duration')
         duration = float(duration_str)
-        time.sleep(duration)
+        time.sleep(duration * 60) # Convert minutes to seconds
     except ConfigParser.NoOptionError:
         print("Duration not specified for task Sleep.")
     except ConfigParser.NoSectionError:
