@@ -247,6 +247,7 @@ def manage(config):
                 cmd, working_dir, duration = select_coin(config, coins)
             elif task == TASK_SLEEP:
                 print("Sleeping...")
+                post_to_slack(config, "Sleeping on " + platform.node() + ".")
                 go_to_sleep(config)
             else:
                 cmd, working_dir, duration = get_task_cmd(config, task)
