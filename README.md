@@ -15,6 +15,12 @@ fuzz = fuzzer.Fuzzer({})
 out_contents, out_len = fuzz.fuzz(in_contents, len(in_contents))
 ```
 
+## kvb.py
+A script for cleaning up whitespace. The name is an inside joke.
+```sh
+python kvb.py --dir ~/src/myproject/ --trailing-whitespace
+```
+
 ## mine_boss.py
 A python script for scheduling compute tasks. Originally intended to swap between miners, keeping the computer on the most profitable coin, but can be used for scheduling non-mining tasks as well. Logic is controlled from the configuration file, an example of which is provided.
 ```sh
