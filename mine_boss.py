@@ -239,6 +239,7 @@ def manage(config):
     while not g_stop:
         if g_task_thread is None or not g_task_thread.isAlive():
             print("Selecting task...")
+            cmd = ""
             task = select_task(config)
             if task == TASK_BEST_COIN:
                 print("Retrieving coin list...")
