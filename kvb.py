@@ -52,6 +52,7 @@ def process_file(file_name, trailing_whitespace):
         else:
             new_line = line
         new_file_contents = new_file_contents + new_line + '\n'
+    new_file_contents = new_file_contents + '\n'
     write_entire_file(file_name, new_file_contents)
 
 def process_dir(dir_name, trailing_whitespace):
