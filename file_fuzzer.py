@@ -35,7 +35,7 @@ def fuzz_file(fuzz, in_file_name, out_dir, n):
 
             for _ in range(0,n):
                 # Fuzz the contents.
-                print "Fuzzing " + in_file_name + "..."
+                print("Fuzzing " + in_file_name + "...")
                 out_contents, _ = fuzz.fuzz(in_contents, len(in_contents))
 
                 # Hash the contents.
@@ -45,12 +45,12 @@ def fuzz_file(fuzz, in_file_name, out_dir, n):
 
                 # Write the output file.
                 out_file_name = os.path.join(out_dir, hash_str)
-                print "Writing the fuzzed contents to " + out_file_name + "..."
+                print("Writing the fuzzed contents to " + out_file_name + "...")
                 with open(out_file_name, 'wb') as out_file:
                     out_file.write(out_contents)
-                print "Done."
+                print("Done.")
     except:
-        print "Exception when fuzzing " + in_file_name
+        print("Exception when fuzzing " + in_file_name)
 
 def fuzz_dir(fuzz, in_dir, out_dir, n):
     """Fuzzes all the files in the specified directory, storing the results in the given output directory."""

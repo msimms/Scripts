@@ -98,7 +98,7 @@ def main():
     # Fuzz.
     fuzzer = Fuzzer({})
     data, _ = fuzzer.fuzz(data, len(data))
-    print data
+    print(data)
 
 if __name__ == "__main__":
     main()

@@ -36,11 +36,11 @@ g_server_thread = None
 def signal_handler(signal, frame):
     global g_server_thread
 
-    print "Exiting..."
+    print("Exiting...")
     if g_server_thread:
         g_server_thread.terminate()
         g_server_thread.join()
-    print "Done"
+    print("Done")
 
 class ClientReadThread(threading.Thread):
     """An instance of this class is created for each client connection."""
@@ -146,7 +146,7 @@ class ServerProxy(threading.Thread):
 
     def run(self):
         """Main run loop."""
-        print "Starting a listen thread on " + self.bindip + ":" + str(self.bindport) + "."
+        print("Starting a listen thread on " + self.bindip + ":" + str(self.bindport) + ".")
         self.proxysocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.proxysocket.bind((self.bindip, self.bindport))
         self.proxysocket.listen(1)
@@ -159,7 +159,7 @@ class ServerProxy(threading.Thread):
             except socket.timeout:
                 pass
         self.proxysocket.close()
-        print "Closed the server listen thread."
+        print("Closed the server listen thread.")
 
 def main():
     global g_server_thread
