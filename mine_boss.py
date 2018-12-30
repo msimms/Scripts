@@ -266,7 +266,7 @@ def load_config(config_file_name):
     return config
 
 def main():
-    """Entry point for the cherrypy version of the app."""
+    """Entry point for the app."""
 
     # Parse command line options.
     parser = argparse.ArgumentParser()
