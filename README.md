@@ -1,18 +1,24 @@
 # Scripts
 A random collection of useful scripts. These are mostly intended for myself, but others can use them if they so desire.
 
-## file_fuzzer.py
+## test_tools/file_fuzzer.py
 A very simple file fuzzer.
 ```sh
 python file_fuzzer.py --in-dir ~/input_data/ --out-dir ~/output_data/ --n 3
 ```
 
-## fuzzer.py
+## test_tools/fuzzer.py
 Implements simple fuzzing logic. Not meant to be called directly, but instead imported into another script to perform network or file fuzzing. Options are passed to the constructor as a dictionary.
 ```python
 import fuzzer
 fuzz = fuzzer.Fuzzer({})
 out_contents, out_len = fuzz.fuzz(in_contents, len(in_contents))
+```
+
+## test_tools/proxy.py
+A simple network proxy for use in fuzz testing my own code.
+```sh
+python proxy.py --bindip 127.0.0.1 --bindport 8080 --destip 127.0.0.1 --destport 80 --post do_stuff.py
 ```
 
 ## kvb.py
@@ -25,12 +31,6 @@ python kvb.py --dir ~/src/myproject/ --trailing-whitespace
 A python script for scheduling compute tasks. Originally intended to swap between miners, keeping the computer on the most profitable coin, but can be used for scheduling non-mining tasks as well. Logic is controlled from the configuration file, an example of which is provided.
 ```sh
 python mine_boss.py --config miner.config
-```
-
-## proxy.py
-A simple network proxy for use in fuzz testing my own code.
-```sh
-python proxy.py --bindip 127.0.0.1 --bindport 8080 --destip 127.0.0.1 --destport 80 --post do_stuff.py
 ```
 
 ## shell_over_slack.py
