@@ -278,6 +278,9 @@ def main():
         parser.error(e)
         sys.exit(1)
 
+    # Initialize randomness.
+    random.seed()
+
     # Register the signal handler.
     signal.signal(signal.SIGINT, signal_handler)
 
