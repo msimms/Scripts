@@ -36,6 +36,7 @@ def normjoin(*args):
 def fix_file_dates(source_file_name, dest_file_name):
     """Sets the destination files creation and modification dates equal to those of the source file."""
     shutil.copystat(source_file_name, dest_file_name)
+    print("Fixed dates for " + dest_file_name)
 
 def copy_file(source_file_name, dest_file_name):
     """Copies the source file to the complete path given by the destination file name."""
@@ -57,31 +58,34 @@ def hash_file(file_to_hash):
 def compare_dir(source_dir, dest_dir, recurse, sync, fix_dates):
     for root, subdir_names, file_names in os.walk(source_dir):
         for file_name in file_names:
-            # Generate the complete paths for the source and destination files.
-            source_file_name = os.path.join(source_dir, file_name)
-            dest_file_name = os.path.join(dest_dir, file_name)
+            try:
+                # Generate the complete paths for the source and destination files.
+                source_file_name = os.path.join(source_dir, file_name)
+                dest_file_name = os.path.join(dest_dir, file_name)
 
-            # Hash the source file.
-            source_hash_str = hash_file(source_file_name)
+                # Hash the source file.
+                source_hash_str = hash_file(source_file_name)
 
-            # Hash the destination file, if it exists.
-            needs_to_copy = True
-            dest_hash_str = ""
-            if os.path.exists(dest_file_name):
-                dest_hash_str = hash_file(dest_file_name)
-                needs_to_copy = source_hash_str != dest_hash_str
-                if needs_to_copy:
-                    print(dest_file_name + " does not match " + source_file_name)
-            else:
-                print(dest_file_name + " does not exist.")
+                # Hash the destination file, if it exists.
+                needs_to_copy = True
+                dest_hash_str = ""
+                if os.path.exists(dest_file_name):
+                    dest_hash_str = hash_file(dest_file_name)
+                    needs_to_copy = source_hash_str != dest_hash_str
+                    if needs_to_copy:
+                        print(source_file_name + " does not match " + dest_file_name)
+                else:
+                    print(dest_file_name + " does not exist.")
 
-            # If synchronizing then copy the file.
-            if sync and needs_to_copy:
-                copy_file(source_file_name, dest_file_name)
+                # If synchronizing then copy the file.
+                if sync and needs_to_copy:
+                    copy_file(source_file_name, dest_file_name)
 
-            # If fixing dates then do that.
-            if fix_dates:
-                fix_file_dates(source_file_name, dest_file_name)
+                # If fixing dates then do that.
+                if fix_dates:
+                    fix_file_dates(source_file_name, dest_file_name)
+            except:
+                print("[ERROR] Exception when comparing " + source_file_name + " to " + dest_file_name)
 
         # Do the subdirectories
         if recurse:
