@@ -26,9 +26,16 @@
 
 import argparse
 import hashlib
+import logging
 import os
 import shutil
 import sys
+import traceback
+
+def log_error(log_str):
+    """Writes an error message to the log file."""
+    logger = logging.getLogger()
+    logger.error(log_str)
 
 def normjoin(*args):
     return os.path.normpath(os.path.join(*args))
@@ -46,7 +53,7 @@ def copy_file(source_file_name, dest_file_name):
 def hash_file(file_to_hash):
     """Computes a SHA-256 hash of the specified file."""
     hash_algorithm = hashlib.sha256()
-    file = open(file_to_hash)
+    file = open(file_to_hash, 'rb')
     while True:
         contents = file.read(65536)
         if not contents:
@@ -85,7 +92,9 @@ def compare_dir(source_dir, dest_dir, recurse, sync, fix_dates):
                 if fix_dates:
                     fix_file_dates(source_file_name, dest_file_name)
             except:
-                print("[ERROR] Exception when comparing " + source_file_name + " to " + dest_file_name)
+                log_error("[ERROR] Exception when comparing " + source_file_name + " to " + dest_file_name)
+                log_error(traceback.format_exc())
+                log_error(sys.exc_info()[0])
 
         # Do the subdirectories
         if recurse:
@@ -111,6 +120,10 @@ def main():
         parser.error(e)
         sys.exit(1)
 
+    # Configure the error logger.
+    logging.basicConfig(filename='error.log', filemode='w', level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+
+    # Do stuff.
     compare_dir(args.source_dir, args.dest_dir, args.recurse, args.sync, args.fix_dates)
 
 if __name__ == "__main__":
