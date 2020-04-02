@@ -116,7 +116,7 @@ def compare_dir(source_dir, dest_dir, recurse, sync, fix_dates, report_missing_f
             dest_dir_name = os.path.join(dest_dir, file_name)
 
             # Recurse.
-            compare_dir(source_dir_name, dest_dir_name, recurse, sync, fix_dates)
+            compare_dir(source_dir_name, dest_dir_name, recurse, sync, fix_dates, report_missing_files)
 
 def main():
     parser = argparse.ArgumentParser()
