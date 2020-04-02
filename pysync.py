@@ -47,8 +47,9 @@ def fix_file_dates(source_file_name, dest_file_name):
 
 def copy_file(source_file_name, dest_file_name):
     """Copies the source file to the complete path given by the destination file name."""
+    print("Copying " + source_file_name + " to " + dest_file_name)
     shutil.copy2(source_file_name, dest_file_name)
-    print(source_file_name + " copied to " + dest_file_name)
+    print("Copying done.")
 
 def hash_file(file_to_hash):
     """Computes a SHA-256 hash of the specified file."""
