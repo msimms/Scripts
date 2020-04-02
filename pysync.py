@@ -75,23 +75,24 @@ def compare_dir(source_dir, dest_dir, recurse, sync, fix_dates):
                 source_file_name = os.path.join(source_dir, file_name)
                 dest_file_name = os.path.join(dest_dir, file_name)
 
-                # Hash the source file.
-                source_hash_str = hash_file(source_file_name)
+                if sync:
+                    # Hash the source file.
+                    source_hash_str = hash_file(source_file_name)
 
-                # Hash the destination file, if it exists.
-                needs_to_copy = True
-                dest_hash_str = ""
-                if os.path.exists(dest_file_name):
-                    dest_hash_str = hash_file(dest_file_name)
-                    needs_to_copy = source_hash_str != dest_hash_str
+                    # Hash the destination file, if it exists.
+                    needs_to_copy = True
+                    dest_hash_str = ""
+                    if os.path.exists(dest_file_name):
+                        dest_hash_str = hash_file(dest_file_name)
+                        needs_to_copy = source_hash_str != dest_hash_str
+                        if needs_to_copy:
+                            print(source_file_name + " does not match " + dest_file_name)
+                    else:
+                        print(dest_file_name + " does not exist.")
+
+                    # Copy the file if the hashes don't match or the destination file doesn't exist.
                     if needs_to_copy:
-                        print(source_file_name + " does not match " + dest_file_name)
-                else:
-                    print(dest_file_name + " does not exist.")
-
-                # If synchronizing then copy the file.
-                if sync and needs_to_copy:
-                    copy_file(source_file_name, dest_file_name)
+                        copy_file(source_file_name, dest_file_name)
 
                 # If fixing dates then do that.
                 if fix_dates:
