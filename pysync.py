@@ -63,8 +63,13 @@ def hash_file(file_to_hash):
     return hash_str
 
 def compare_dir(source_dir, dest_dir, recurse, sync, fix_dates):
-    for root, subdir_names, file_names in os.walk(source_dir):
-        for file_name in file_names:
+    file_names = os.listdir(source_dir)
+    for file_name in file_names:
+        # Generate the complete path.
+        complete_file_name = os.path.join(source_dir, file_name)
+
+        # File:
+        if os.path.isfile(complete_file_name):
             try:
                 # Generate the complete paths for the source and destination files.
                 source_file_name = os.path.join(source_dir, file_name)
@@ -96,15 +101,14 @@ def compare_dir(source_dir, dest_dir, recurse, sync, fix_dates):
                 log_error(traceback.format_exc())
                 log_error(sys.exc_info()[0])
 
-        # Do the subdirectories
-        if recurse:
-            for subdir_name in subdir_names:
-                # Generate the complete paths for the source and destination subdirs.
-                source_dir_name = os.path.join(source_dir, subdir_name)
-                dest_dir_name = os.path.join(dest_dir, subdir_name)
+        # Dir:
+        elif recurse and os.path.isdir(complete_file_name):
+            # Generate the complete paths for the source and destination subdirs.
+            source_dir_name = os.path.join(source_dir, file_name)
+            dest_dir_name = os.path.join(dest_dir, file_name)
 
-                # Recurse.
-                compare_dir(source_dir_name, dest_dir_name, recurse, sync, fix_dates)
+            # Recurse.
+            compare_dir(source_dir_name, dest_dir_name, recurse, sync, fix_dates)
 
 def main():
     parser = argparse.ArgumentParser()
