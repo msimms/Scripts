@@ -23,22 +23,29 @@
 from subprocess import Popen, PIPE
 import argparse
 import time
+import pydbg
 import sys
 
-def main():
-    # Parse command line options.
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--file", default="/Applications/Calculator.app/Contents/MacOS/Calculator", help="Name of the file to debug", required=False)
+def breakpoint_handler(pydbg):
+   if pydbg.first_breakpoint:
+      return pydbg.defines.DBG_CONTINUE
 
-    try:
-        args = parser.parse_args()
-    except IOError as e:
-        parser.error(e)
-        sys.exit(1)
+   context = dbg.get_thread_context(dbg.h_thread)
+   print "eip = %08x" % context.Eip
+   print "edi = %08x" % context.Edi
+   return pydbg.defines.DBG_CONTINUE
 
+def debug_process(file_name):
+    dbg = pydbg.pydbg()
+    dbg.set_callback(pydbg.defines.EXCEPTION_BREAKPOINT, breakpoint_handler)
+    dbg.load(file_name)
+    dbg.resume_all_threads()
+    pydbg.debug_event_loop(dbg)
+
+def launch_proc(file_name):
     try:
         running_procs = [
-            Popen([args.file], stdout=PIPE, stderr=PIPE)
+            Popen([file_name], stdout=PIPE, stderr=PIPE)
         ]
 
         while running_procs:
@@ -54,6 +61,17 @@ def main():
             pass
     except:
         pass
+
+def main():
+    # Parse command line options.
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--file", default="/Applications/Calculator.app/Contents/MacOS/Calculator", help="Name of the file to debug", required=False)
+
+    try:
+        args = parser.parse_args()
+    except IOError as e:
+        parser.error(e)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
