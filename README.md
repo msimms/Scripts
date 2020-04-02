@@ -27,10 +27,19 @@ A script for cleaning up whitespace. The name is an inside joke.
 python kvb.py --dir ~/src/myproject/ --trailing-whitespace
 ```
 
+## make_python.py
+In progress.
+
 ## mine_boss.py
 A python script for scheduling compute tasks. Originally intended to swap between miners, keeping the computer on the most profitable coin, but can be used for scheduling non-mining tasks as well. Logic is controlled from the configuration file, an example of which is provided.
 ```sh
 python mine_boss.py --config miner.config
+```
+
+## pysync.py
+A simplistic python knockoff of rsync. I wrote it because rsync was corrupting file dates and also stumbling into os-specific bugs, so this seemed like an easy alternative.
+```sh
+python pysync.py --source-dir ~/Downloads/src/ --dest-dir ~/Downloads/dst/ --sync --fix-dates
 ```
 
 ## shell_over_slack.py
@@ -41,3 +50,6 @@ A python script that (optionally) recurses through a directory looking for git r
 ```sh
 python update_all_repos.py --root /home/me/src --prune --recurse
 ```
+
+## License
+This is open source software and is released under the MIT license.
