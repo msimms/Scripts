@@ -52,6 +52,7 @@ def copy_file(source_file_name, dest_file_name):
 
 def hash_file(file_to_hash):
     """Computes a SHA-256 hash of the specified file."""
+    print("Hashing " + source_file_name + "...")
     hash_algorithm = hashlib.sha256()
     file = open(file_to_hash, 'rb')
     while True:
@@ -94,8 +95,6 @@ def compare_dir(source_dir, dest_dir, recurse, sync, fix_dates, report_missing_f
                         needs_to_copy = source_hash_str != dest_hash_str
                         if needs_to_copy:
                             print(source_file_name + " does not match " + dest_file_name)
-                    else:
-                        print(dest_file_name + " does not exist.")
 
                     # Copy the file if the hashes don't match or the destination file doesn't exist.
                     if needs_to_copy:
