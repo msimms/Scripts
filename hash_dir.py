@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 # MIT License
 # 
 # Copyright (c) 2018 Mike Simms
@@ -47,8 +49,8 @@ def hash_dir(dir, rename_file, git_move_file, extension):
 	for file_to_hash in files_to_hash:
 		try:			
 			hash_str = hash_file(file_to_hash)
-			print file_to_hash + " hashes to " + hash_str
-			
+			print(file_to_hash + " hashes to " + hash_str)
+
 			path, _ = os.path.split(file_to_hash)
 			new_file = os.path.join(path, hash_str)
 			if extension is not None and len(extension) > 0:
@@ -58,7 +60,7 @@ def hash_dir(dir, rename_file, git_move_file, extension):
 			elif git_move_file:
 				subprocess.call(["git", "mv", file_to_hash, new_file])
 		except:
-			print "Exception with " + file_to_hash
+			print("Exception with " + file_to_hash)
 
 def main():
 	parser = argparse.ArgumentParser()
