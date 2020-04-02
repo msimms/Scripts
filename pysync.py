@@ -62,7 +62,7 @@ def hash_file(file_to_hash):
     hash_str = hash_algorithm.hexdigest()
     return hash_str
 
-def compare_dir(source_dir, dest_dir, recurse, sync, fix_dates):
+def compare_dir(source_dir, dest_dir, recurse, sync, fix_dates, report_missing_files):
     file_names = os.listdir(source_dir)
     for file_name in file_names:
         # Generate the complete path.
@@ -75,6 +75,13 @@ def compare_dir(source_dir, dest_dir, recurse, sync, fix_dates):
                 source_file_name = os.path.join(source_dir, file_name)
                 dest_file_name = os.path.join(dest_dir, file_name)
 
+                # Does the destination file even exist?
+                dest_file_exists = os.path.exists(dest_file_name)
+
+                # Are we logging missing files?
+                if report_missing_files and dest_file_exists == False:
+                    print(dest_file_name + " does not exist.")
+
                 if sync:
                     # Hash the source file.
                     source_hash_str = hash_file(source_file_name)
@@ -82,7 +89,7 @@ def compare_dir(source_dir, dest_dir, recurse, sync, fix_dates):
                     # Hash the destination file, if it exists.
                     needs_to_copy = True
                     dest_hash_str = ""
-                    if os.path.exists(dest_file_name):
+                    if dest_file_exists:
                         dest_hash_str = hash_file(dest_file_name)
                         needs_to_copy = source_hash_str != dest_hash_str
                         if needs_to_copy:
@@ -118,6 +125,7 @@ def main():
     parser.add_argument("--recurse", action="store_true", default=True, help="Set to TRUE to perform the sync recursively", required=False)
     parser.add_argument("--sync", action="store_true", default=False, help="Set to TRUE to synchronize the directory", required=False)
     parser.add_argument("--fix-dates", action="store_true", default=False, help="Set to TRUE to set the destination files creation and modification dates", required=False)
+    parser.add_argument("--report-missing-files", action="store_true", default=False, help="Set to TRUE to print missing files to stdout", required=False)
 
     try:
         args = parser.parse_args()
@@ -129,7 +137,7 @@ def main():
     logging.basicConfig(filename='error.log', filemode='w', level=logging.DEBUG, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
     # Do stuff.
-    compare_dir(args.source_dir, args.dest_dir, args.recurse, args.sync, args.fix_dates)
+    compare_dir(args.source_dir, args.dest_dir, args.recurse, args.sync, args.fix_dates, args.report_missing_files)
 
 if __name__ == "__main__":
     main()
