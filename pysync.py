@@ -52,7 +52,7 @@ def copy_file(source_file_name, dest_file_name):
 
 def hash_file(file_to_hash):
     """Computes a SHA-256 hash of the specified file."""
-    print("Hashing " + source_file_name + "...")
+    print("Hashing " + file_to_hash + "...")
     hash_algorithm = hashlib.sha256()
     file = open(file_to_hash, 'rb')
     while True:
@@ -83,14 +83,12 @@ def compare_dir(source_dir, dest_dir, recurse, sync, fix_dates, report_missing_f
                 if report_missing_files and dest_file_exists == False:
                     print(dest_file_name + " does not exist.")
 
+                # Are we copying files that are missing or do not match?
                 if sync:
-                    # Hash the source file.
-                    source_hash_str = hash_file(source_file_name)
-
-                    # Hash the destination file, if it exists.
                     needs_to_copy = True
-                    dest_hash_str = ""
                     if dest_file_exists:
+                        # Hash the source and destination files. Since both exist we need to know if they're different.
+                        source_hash_str = hash_file(source_file_name)
                         dest_hash_str = hash_file(dest_file_name)
                         needs_to_copy = source_hash_str != dest_hash_str
                         if needs_to_copy:
@@ -102,7 +100,7 @@ def compare_dir(source_dir, dest_dir, recurse, sync, fix_dates, report_missing_f
                     if needs_to_copy:
                         copy_file(source_file_name, dest_file_name)
 
-                # If fixing dates then do that.
+                # Are we fixing the file dates?
                 if fix_dates:
                     fix_file_dates(source_file_name, dest_file_name)
             except:
