@@ -102,6 +102,10 @@ def compare_dir(source_dir, dest_dir, recurse, sync, fix_dates, report_missing_f
                             needs_to_copy = source_hash_str != dest_hash_str
                             if needs_to_copy:
                                 print(source_file_name + " does not match " + dest_file_name)
+
+                        # If the destination file exists and we're not hashing, then don't copy.
+                        else:
+                            needs_to_copy = False
                     
                     # If the file is missing then print it, even if the report-missing-files flag is False.
                     # This way the user knows why we're copying file file.
