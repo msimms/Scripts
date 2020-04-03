@@ -1,5 +1,5 @@
 # Scripts
-A random collection of useful scripts. These are mostly intended for myself, but others can use them if they so desire.
+A random collection of useful scripts. These are mostly intended for myself, but others can use them if they so desire. This repo is basically my public junk drawer.
 
 ## test_tools/file_fuzzer.py
 A very simple file fuzzer.
@@ -31,22 +31,23 @@ python kvb.py --dir ~/src/myproject/ --trailing-whitespace
 In progress.
 
 ## mine_boss.py
-A python script for scheduling compute tasks. Originally intended to swap between miners, keeping the computer on the most profitable coin, but can be used for scheduling non-mining tasks as well. Logic is controlled from the configuration file, an example of which is provided.
+A python script for scheduling compute tasks. Originally intended to swap between miners, keeping the computer on the most profitable coin, but can be used for scheduling non-mining tasks as well. I use it to keep one of my more power computers swapping between various charitable projects. Logic is controlled from the configuration file, an example of which is provided.
 ```sh
 python mine_boss.py --config miner.config
 ```
 
 ## pysync.py
-A simplistic python knockoff of rsync. I wrote it because rsync was corrupting file dates and also stumbling into os-specific bugs, so this seemed like an easy alternative.
+A simplistic python knockoff of rsync. I wrote it because rsync was corrupting file dates and also stumbling into os-specific bugs, so writing this seemed like an easy alternative. It compares files using a SHA-256 hash. By default, it operates recursively. Files will not be copied unless the `sync` flag is provided.
 ```sh
 python pysync.py --source-dir ~/Downloads/src/ --dest-dir ~/Downloads/dst/ --sync --fix-dates
+python pysync.py --source-dir ~/Downloads/src/ --dest-dir ~/Downloads/dst/ --report-missing-files
 ```
 
 ## shell_over_slack.py
 This is a very dumb script and no one should use it. It listens to a Slack channel for commands and then does them.
 
 ## update_all_repos.py
-A python script that (optionally) recurses through a directory looking for git repos. When a git repo is found it updates it and (optionally) prunes local branches that are no longer on the remote.
+A python script that (optionally) recurses through a directory looking for git repos. When a git repo is found it updates it and (optionally) prunes local branches that are no longer on the remote. I use this for keeping unattended machines up-to-date with the latest code.
 ```sh
 python update_all_repos.py --root /home/me/src --prune --recurse
 ```
