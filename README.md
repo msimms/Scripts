@@ -21,6 +21,12 @@ A simple network proxy for use in fuzz testing my own code.
 python proxy.py --bindip 127.0.0.1 --bindport 8080 --destip 127.0.0.1 --destport 80 --post do_stuff.py
 ```
 
+## find_invalid_filenames.py
+A python script for listing files with names that are not valid for a particluar file system.
+```sh
+python find_invalid_filenames.py --dir foo --[zfs|fat|ntfs|hfs]
+```
+
 ## kvb.py
 A script for cleaning up whitespace. The name is an inside joke.
 ```sh
