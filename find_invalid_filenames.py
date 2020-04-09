@@ -29,10 +29,10 @@ import os
 import re
 import sys
 
-valid_zfs_file_name  = re.compile(r"^[\.\:\_\-a-zA-Z0-9]+") # Source https://docs.oracle.com/cd/E26505_01/html/E37384/gbcpt.html
-valid_fat_file_name  = re.compile(r"^[\.\_\$\%\@\~\!\(\)\{\}\^\+\-\,\;\=\[\]\#\&a-zA-Z0-9]+") # Matches long FAT file names, source http://averstak.tripod.com/fatdox/names.htm
-valid_ntfs_file_name = re.compile(r"^[\.\_\$\%\@\~\!\\\/\(\)\{\}\^\+\-\,\;\=\[\]\#\&a-zA-Z0-9]+")
-valid_hfs_file_name  = re.compile(r"^[\.\_\$\%\@\~\!\\\/\(\)\{\}\^\+\-\,\;\=\[\]\#\&a-zA-Z0-9]+")
+valid_zfs_file_name  = re.compile(r"^[\s\.\:\_\-a-zA-Z0-9]+") # Source https://docs.oracle.com/cd/E26505_01/html/E37384/gbcpt.html
+valid_fat_file_name  = re.compile(r"^[\s\.\_\$\%\@\~\!\(\)\{\}\^\+\-\,\;\=\[\]\#\&a-zA-Z0-9]+") # Matches long FAT file names, source http://averstak.tripod.com/fatdox/names.htm
+valid_ntfs_file_name = re.compile(r"^[\s\.\_\$\%\@\~\!\\\/\(\)\{\}\^\+\-\,\;\=\[\]\#\&a-zA-Z0-9]+")
+valid_hfs_file_name  = re.compile(r"^[\s\.\_\$\%\@\~\!\\\/\(\)\{\}\^\+\-\,\;\=\[\]\#\&a-zA-Z0-9]+")
 
 def search_dir(dir, recurse, zfs, fat, ntfs, hfs):
     for file_name in os.listdir(dir):
