@@ -29,7 +29,7 @@ import os
 import re
 import sys
 
-valid_zfs_file_name  = re.compile(r"^[\s\.\:\_\-a-zA-Z0-9]+") # Source https://docs.oracle.com/cd/E26505_01/html/E37384/gbcpt.html
+valid_zfs_file_name  = re.compile(r"^[\s\.\:\_\-\*\,a-zA-Z0-9]+") # Source https://unix.stackexchange.com/questions/23569/allowed-and-safe-characters-for-zfs-filesystem-in-freebsd
 valid_fat_file_name  = re.compile(r"^[\s\.\_\$\%\@\~\!\(\)\{\}\^\+\-\,\;\=\[\]\#\&a-zA-Z0-9]+") # Matches long FAT file names, source http://averstak.tripod.com/fatdox/names.htm
 valid_ntfs_file_name = re.compile(r"^[\s\.\_\$\%\@\~\!\\\/\(\)\{\}\^\+\-\,\;\=\[\]\#\&a-zA-Z0-9]+")
 valid_hfs_file_name  = re.compile(r"^[\s\.\_\$\%\@\~\!\\\/\(\)\{\}\^\+\-\,\;\=\[\]\#\&a-zA-Z0-9]+")
