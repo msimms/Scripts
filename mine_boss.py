@@ -23,6 +23,7 @@
 # SOFTWARE.
 
 import argparse
+import datetime
 import json
 import io
 import os
@@ -72,11 +73,34 @@ def post_to_slack(config, message):
     except:
         pass
 
+def is_quiet_time(config):
+    """Is it time to start quiet time?"""
+    try:
+        quiet_time_str = config.get('General', 'quiet time')
+        if quiet_time_str is not None:
+            quiet_times = quiet_time_str.split("-")
+            if len(quiet_times) == 2:
+                start_time_parts = quiet_times[0].split(':')
+                end_time_parts = quiet_times[1].split(':')
+                if len(start_time_parts) == 2 and len(end_time_parts) == 2:
+                    start_time = int(start_time_parts[0]) * 100 + int(start_time_parts[1])
+                    end_time = int(end_time_parts[0]) * 100 + int(end_time_parts[1])
+                    d = datetime.datetime.now()
+                    cur_time = d.hour * 100 + d.minute
+                    if end_time > start_time:
+                        return cur_time >= start_time and cur_time < end_time
+                    else: # quiet time crosses midnight
+                        return cur_time >= start_time or cur_time < end_time
+    except:
+        pass
+    return False
+
 class TaskThread(threading.Thread):
     """An instance of this class runs a subprocess."""
 
-    def __init__(self, cmd, working_dir, max_duration):
+    def __init__(self, config, cmd, working_dir, max_duration):
         threading.Thread.__init__(self)
+        self.config = config
         self.cmd = cmd
         self.wd = working_dir
         self.max_duration = max_duration
@@ -119,8 +143,12 @@ class TaskThread(threading.Thread):
 
             # Wait for the process to terminate.
             while self.proc.poll() is None:
+
+                # Sleep.
                 time.sleep(1)
-                if self.max_duration is not None and self.max_duration > 0:
+
+                # Is it time to end the currently running task?
+                if (self.max_duration is not None and self.max_duration > 0) or is_quiet_time(self.config):
                     current_duration = int(time.time() - self.start_time)
                     if current_duration > self.max_duration:
                         print("The maximum duration has expired.")
@@ -143,6 +171,7 @@ def select_task(config):
     return task
 
 def unquote(value):
+    """Utility function for ripping the quotes off the start and end of a string."""
     if value.startswith('"') and value.endswith('"'):
         value = value[1:-1]
     return value
@@ -225,7 +254,7 @@ def start_task(config, cmd, task, working_dir, duration):
         return
     
     post_to_slack(config, "Starting " + cmd + " on " + platform.node() + " for task " + task + ".")
-    g_task_thread = TaskThread(cmd, working_dir, duration)
+    g_task_thread = TaskThread(config, cmd, working_dir, duration)
     g_task_thread.start()
 
 def manage(config):
@@ -237,10 +266,13 @@ def manage(config):
     working_dir = None
 
     while not g_stop:
-        if g_task_thread is None or not g_task_thread.isAlive():
+
+        if (g_task_thread is None or not g_task_thread.isAlive()) and (not is_quiet_time(config)):
+
             print("Selecting task...")
             cmd = ""
             task = select_task(config)
+
             if task == TASK_BEST_COIN:
                 print("Retrieving coin list...")
                 coins = list_coins()
@@ -255,6 +287,7 @@ def manage(config):
             if cmd is not None and len(cmd) > 0 and task is not TASK_SLEEP:
                 print("Starting the task...")
                 start_task(config, cmd, task, working_dir, duration)
+
         time.sleep(1)
 
 def load_config(config_file_name):
