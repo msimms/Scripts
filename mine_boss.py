@@ -148,11 +148,14 @@ class TaskThread(threading.Thread):
                 time.sleep(1)
 
                 # Is it time to end the currently running task?
-                if (self.max_duration is not None and self.max_duration > 0) or is_quiet_time(self.config):
+                if self.max_duration is not None and self.max_duration > 0:
                     current_duration = int(time.time() - self.start_time)
                     if current_duration > self.max_duration:
                         print("The maximum duration has expired.")
                         self.terminate_proc(self.proc)
+                elif is_quiet_time(self.config):
+                    print("Ending the task because it is now quiet time.")
+                    self.terminate_proc(self.proc)
             print("Subprocess terminated.")
         except OSError:
             print("OS Error. Process not started.")
