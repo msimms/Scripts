@@ -36,7 +36,11 @@ import signal
 import subprocess
 import threading
 import time
-import ConfigParser
+
+if sys.version_info[0] < 3:
+    import ConfigParser as configparser
+else:
+    import configparser
 
 TASK_BEST_COIN = "Best Coin"
 TASK_SLEEP = "Sleep"
@@ -64,9 +68,9 @@ def post_to_slack(config, message):
         from slacker import Slacker
         slack = Slacker(key)
         slack.chat.post_message(channel, message)
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         pass
-    except ConfigParser.NoSectionError:
+    except configparser.NoSectionError:
         pass
     except ImportError:
         print("Failed ot import Slacker. Cannot post to Slack. Either install the module or remove the Slack section from the configuration file.")
@@ -170,9 +174,9 @@ def select_task(config):
         task_list_str = config.get('General', 'tasks')
         task_list = task_list_str.split(',')
         task = task_list[random.randint(0, len(task_list) - 1)]
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         pass
-    except ConfigParser.NoSectionError:
+    except configparser.NoSectionError:
         pass
     return task
 
@@ -192,23 +196,23 @@ def get_task_cmd(config, task):
         try:
             wd = config.get(task, 'working dir')
             wd = unquote(wd)
-        except ConfigParser.NoOptionError:
+        except configparser.NoOptionError:
             pass
-        except ConfigParser.NoSectionError:
+        except configparser.NoSectionError:
             pass
 
         duration = None
         try:
             duration = int(config.get(task, 'max duration')) * 60
-        except ConfigParser.NoOptionError:
+        except configparser.NoOptionError:
             pass
-        except ConfigParser.NoSectionError:
+        except configparser.NoSectionError:
             pass
 
         return cmd, wd, duration
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         print("Command line not specified for " + task + ".")
-    except ConfigParser.NoSectionError:
+    except configparser.NoSectionError:
         print("Section not specified for " + task + ".")
     return None, None, None
 
@@ -247,9 +251,9 @@ def go_to_sleep(config):
         duration_str = config.get(TASK_SLEEP, 'duration')
         duration = float(duration_str)
         time.sleep(duration * 60) # Convert minutes to seconds
-    except ConfigParser.NoOptionError:
+    except configparser.NoOptionError:
         print("Duration not specified for task Sleep.")
-    except ConfigParser.NoSectionError:
+    except configparser.NoSectionError:
         print("Section not specified for task Sleep.")
 
 def start_task(config, cmd, task, working_dir, duration):
@@ -298,10 +302,13 @@ def manage(config):
 
 def load_config(config_file_name):
     """Loads the configuration file."""
-    with open(config_file_name) as f:
-        sample_config = f.read()
-    config = ConfigParser.RawConfigParser(allow_no_value=True)
-    config.readfp(io.BytesIO(sample_config))
+    config = configparser.RawConfigParser(allow_no_value=True)
+    if sys.version_info[0] < 3:
+        with open(config_file_name) as f:
+            sample_config = f.read()
+        config.readfp(io.BytesIO(sample_config))
+    else:
+        config.read(config_file_name)
     return config
 
 def main():
