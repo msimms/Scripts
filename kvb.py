@@ -46,16 +46,21 @@ def write_entire_file(file_name, data):
 
 def process_file(file_name, trailing_whitespace):
     """Performs the specified modifications to the file with the given name, overwriting it in the process."""
+    new_file_contents = ""
     file_contents = read_entire_file(file_name)
     file_lines = file_contents.split('\n')
-    new_file_contents = ""
-    for line in file_lines:
+    num_file_lines = len(file_lines)
+    for i, line in enumerate(file_lines):
         if trailing_whitespace:
             new_line = line.rstrip(' \t')
         else:
             new_line = line
-        new_file_contents = new_file_contents + new_line + '\n'
-    new_file_contents = new_file_contents + '\n'
+        if i < num_file_lines - 1:
+            new_file_contents = new_file_contents + new_line + '\n'
+        else:
+            new_file_contents = new_file_contents + new_line
+
+    # Save the file.
     write_entire_file(file_name, new_file_contents)
 
 def process_dir(dir_name, trailing_whitespace):
