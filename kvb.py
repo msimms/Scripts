@@ -26,6 +26,7 @@
 
 import argparse
 import os
+import sys
 
 def read_entire_file(file_name):
     """Reads an entire file."""
