@@ -41,7 +41,7 @@ def update_dir(args, dir_name):
 
                 # git repo
                 if os.path.exists(git_dir):
-                    print "Updating git repo at " + subdir
+                    print("Updating git repo at " + subdir)
                     os.chdir(subdir)
                     subprocess.call(["git", "pull"])
                     if args.prune:
@@ -49,7 +49,7 @@ def update_dir(args, dir_name):
 
                 # git mirror
                 elif os.path.exists(git_head):
-                    print "Updating git mirror at " + subdir
+                    print("Updating git mirror at " + subdir)
                     os.chdir(subdir)
                     subprocess.call(["git", "fetch"])
                     if args.prune:
@@ -57,16 +57,16 @@ def update_dir(args, dir_name):
 
                 # svn
                 elif os.path.exists(svn_dir):
-                    print "Updating svn repo at " + subdir
+                    print("Updating svn repo at " + subdir)
                     os.chdir(subdir)
                     subprocess.call(["svn", "update"])
 
                 # recurse?
                 elif args.recurse:
-                    print "Recursing into " + subdir
+                    print("Recursing into " + subdir)
                     update_dir(args, subdir)
     except OSError as exception:
-        print exception
+        print(exception)
 
 
 def main():
