@@ -25,20 +25,45 @@
 # SOFTWARE.
 
 import argparse
+import os
 import sys
 from time import sleep
 
 
 def copy_file(source_file_name, dest_file_name, slow):
+    """Mac OS sometimes sucks with network drives. After trying numerous other methods to fix this, I just wrote a 'slow' copy that writes the file in 1 MB chunks."""
+
+    # Has the file already been (partially) copied?
+    offset = os.path.getsize(dest_file_name)
+
+    # Copy the rest of the file.
     with open(source_file_name, mode='rb') as source_file:
-        with open(dest_file_name, mode='wb') as dest_file:
-            while True:
+
+        # Skip past any part that we've already copied.
+        source_file.seek(offset, 0)
+
+        # Copy the rest.
+        done = False
+        while not done:
+            with open(dest_file_name, mode='ab') as dest_file:
+                # Read.
                 contents = source_file.read(1024*1024)
                 if not contents:
                     print('done')
+                    done = True
                     break
+
+                # Write.
                 dest_file.write(contents)
+
+                # Flush all the buffers.
+                source_file.flush()
+                dest_file.flush()
+
+                # Print something so we know it's still working.
                 print('.', end='', flush=True)
+
+                # Slow mode.
                 if slow:
                     sleep(0.25)
 
