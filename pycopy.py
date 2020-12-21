@@ -34,7 +34,10 @@ def copy_file(source_file_name, dest_file_name, slow):
     """Mac OS sometimes sucks with network drives. After trying numerous other methods to fix this, I just wrote a 'slow' copy that writes the file in 1 MB chunks."""
 
     # Has the file already been (partially) copied?
-    offset = os.path.getsize(dest_file_name)
+    if os.path.isfile(dest_file_name):
+        offset = os.path.getsize(dest_file_name)
+    else:
+        offset = 0
 
     # Copy the rest of the file.
     with open(source_file_name, mode='rb') as source_file:
@@ -45,7 +48,7 @@ def copy_file(source_file_name, dest_file_name, slow):
         # Copy the rest.
         done = False
         while not done:
-            with open(dest_file_name, mode='ab') as dest_file:
+            with open(dest_file_name, mode='ab+') as dest_file:
                 # Read.
                 contents = source_file.read(1024*1024)
                 if not contents:
