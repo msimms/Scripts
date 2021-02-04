@@ -33,6 +33,12 @@ A script for cleaning up whitespace. The name is an inside joke.
 python kvb.py --dir ~/src/myproject/ --trailing-whitespace
 ```
 
+## list_installed_apt_packages.py
+This script looks through the apt package managers history logs and builds a list of packages that were installed manually. In other words, this is for building a list of packages that were installed intentionally, and not packages that were installed because they were dependencies of other packages.
+```sh
+python list_installed_apt_packages.py
+```
+
 ## make_python.py
 In progress.
 
