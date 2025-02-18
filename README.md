@@ -21,6 +21,12 @@ A simple network proxy for use in fuzz testing my own code.
 python proxy.py --bindip 127.0.0.1 --bindport 8080 --destip 127.0.0.1 --destport 80 --post do_stuff.py
 ```
 
+## bmp_to_c.py
+A python script for converting a bitmap to a C-style array.
+```sh
+python bmp_to_c.py input.bmp
+```
+
 ## find_invalid_filenames.py
 A python script for listing files with names that are not valid for a particluar file system.
 ```sh
